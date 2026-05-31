@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}{{ emp.user.get_full_name }}{% endblock %}
+{% block content %}
+<div class="page-header fade-in">
+    <div><h1 class="page-title">{{ emp.user.get_full_name }}</h1><p class="page-subtitle">{{ emp.position }}</p></div>
+    <a href="/employees/" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+</div>
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card fade-in fade-in-1 text-center p-4">
+            <div class="avatar avatar-lg mx-auto mb-3">{{ emp.user.first_name|first }}{{ emp.user.last_name|first }}</div>
+            <h5 class="fw-700">{{ emp.user.get_full_name }}</h5>
+            <p class="text-muted" style="font-size:13px;">{{ emp.position }}</p>
+            <div class="badge" style="background:var(--accent-light);color:var(--accent);">{{ emp.department.name|default:"No Department" }}</div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card fade-in fade-in-2">
+            <div class="card-header"><h6 class="card-title">Employee Details</h6></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6"><div class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase;">Emp. Number</div><div class="fw-600 mt-1">{{ emp.employee_number }}</div></div>
+                    <div class="col-sm-6"><div class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase;">National ID</div><div class="fw-600 mt-1">{{ emp.national_id }}</div></div>
+                    <div class="col-sm-6"><div class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase;">Email</div><div class="fw-600 mt-1">{{ emp.user.email }}</div></div>
+                    <div class="col-sm-6"><div class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase;">Phone</div><div class="fw-600 mt-1">{{ emp.user.phone|default:"—" }}</div></div>
+                    <div class="col-sm-6"><div class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase;">Department</div><div class="fw-600 mt-1">{{ emp.department.name|default:"—" }}</div></div>
+                    <div class="col-sm-6"><div class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase;">Employment Date</div><div class="fw-600 mt-1">{{ emp.employment_date|date:"d F Y" }}</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

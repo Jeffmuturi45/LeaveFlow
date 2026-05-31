@@ -1,0 +1,549 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+{# ═══════════════════════════════════════════ SUPER ADMIN / HR DASHBOARD ═══ #}
+{% if user.role == 'super_admin' or user.role == 'hr_officer' %}
+
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title">
+      {% if user.role == 'super_admin' %}
+        <span class="role-pill role-super_admin"><i class="fas fa-shield-alt me-2"></i>Super Admin</span>
+      {% else %}
+        <span class="role-pill role-hr_officer"><i class="fas fa-user-tie me-2"></i>HR Officer</span>
+      {% endif %}
+      &nbsp;Dashboard
+    </h1>
+    <p class="page-subtitle">Welcome back, {{ user.get_full_name|default:user.username }} — here's what's happening today.</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="/leaves/approvals/hr/" class="btn btn-primary btn-sm">
+      <i class="fas fa-stamp me-2"></i>Pending Approvals
+      {% if pending_hr %}<span class="ms-1 badge bg-white text-primary">{{ pending_hr }}</span>{% endif %}
+    </a>
+    <a href="/leaves/reports/" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-chart-bar me-2"></i>Reports
+    </a>
+  </div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3 fade-in fade-in-1">
+    <div class="stat-card stat-card--indigo">
+      <div class="stat-icon indigo"><i class="fas fa-users"></i></div>
+      <div>
+        <div class="stat-value">{{ total_employees|default:"0" }}</div>
+        <div class="stat-label">Total Employees</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3 fade-in fade-in-2">
+    <div class="stat-card stat-card--amber">
+      <div class="stat-icon amber"><i class="fas fa-clock"></i></div>
+      <div>
+        <div class="stat-value">{{ pending_hr|default:"0" }}</div>
+        <div class="stat-label">Pending HR Review</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3 fade-in fade-in-3">
+    <div class="stat-card stat-card--green">
+      <div class="stat-icon green"><i class="fas fa-plane-departure"></i></div>
+      <div>
+        <div class="stat-value">{{ on_leave_today|default:"0" }}</div>
+        <div class="stat-label">On Leave Today</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3 fade-in fade-in-4">
+    <div class="stat-card stat-card--blue">
+      <div class="stat-icon blue"><i class="fas fa-sitemap"></i></div>
+      <div>
+        <div class="stat-value">{{ total_departments|default:"0" }}</div>
+        <div class="stat-label">Departments</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS + TABLE ROW -->
+<div class="row g-3 mb-4">
+  <!-- Leave Trends Chart -->
+  <div class="col-lg-7 fade-in fade-in-2">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h6 class="card-title"><i class="fas fa-chart-line me-2 text-muted"></i>Leave Applications by Type</h6>
+        <span class="badge bg-accent-soft text-accent">This Year</span>
+      </div>
+      <div class="card-body">
+        <canvas id="leaveTypeChart" height="230"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="col-lg-5 fade-in fade-in-3">
+    <div class="card h-100">
+      <div class="card-header">
+        <h6 class="card-title"><i class="fas fa-bolt me-2 text-muted"></i>Quick Actions</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="quick-actions">
+          <a href="/employees/add/" class="quick-action-item">
+            <div class="qa-icon qa-indigo"><i class="fas fa-user-plus"></i></div>
+            <div><div class="qa-label">Add Employee</div><div class="qa-sub">Register new staff member</div></div>
+            <i class="fas fa-chevron-right qa-arrow"></i>
+          </a>
+          <a href="/leaves/types/" class="quick-action-item">
+            <div class="qa-icon qa-green"><i class="fas fa-tags"></i></div>
+            <div><div class="qa-label">Manage Leave Types</div><div class="qa-sub">Configure leave categories</div></div>
+            <i class="fas fa-chevron-right qa-arrow"></i>
+          </a>
+          <a href="/leaves/holidays/" class="quick-action-item">
+            <div class="qa-icon qa-amber"><i class="fas fa-umbrella-beach"></i></div>
+            <div><div class="qa-label">Public Holidays</div><div class="qa-sub">Set holiday calendar</div></div>
+            <i class="fas fa-chevron-right qa-arrow"></i>
+          </a>
+          <a href="/leaves/calendar/" class="quick-action-item">
+            <div class="qa-icon qa-blue"><i class="fas fa-calendar-alt"></i></div>
+            <div><div class="qa-label">Leave Calendar</div><div class="qa-sub">Team availability view</div></div>
+            <i class="fas fa-chevron-right qa-arrow"></i>
+          </a>
+          {% if user.role == 'super_admin' %}
+          <a href="/core/settings/" class="quick-action-item">
+            <div class="qa-icon qa-purple"><i class="fas fa-cog"></i></div>
+            <div><div class="qa-label">Company Settings</div><div class="qa-sub">Manage company info</div></div>
+            <i class="fas fa-chevron-right qa-arrow"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECENT APPLICATIONS TABLE -->
+<div class="table-container fade-in fade-in-3">
+  <div class="table-toolbar">
+    <div class="table-title"><i class="fas fa-list me-2 text-muted"></i>Recent Leave Applications</div>
+    <a href="/leaves/approvals/hr/" class="btn btn-outline-primary btn-sm">View All</a>
+  </div>
+  {% if recent_applications %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Leave #</th>
+          <th>Employee</th>
+          <th>Leave Type</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Days</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in recent_applications %}
+        <tr>
+          <td><span class="fw-600 text-accent">{{ app.leave_number }}</span></td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="avatar">{{ app.employee.first_name|first }}{{ app.employee.last_name|first }}</div>
+              <div>
+                <div class="fw-600" style="font-size:13px;">{{ app.employee.get_full_name }}</div>
+                <div style="font-size:11px;color:var(--text-3);">{{ app.employee.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span style="color:{{ app.leave_type.color }};font-weight:600;">{{ app.leave_type.name }}</span></td>
+          <td>{{ app.start_date|date:"d M Y" }}</td>
+          <td>{{ app.end_date|date:"d M Y" }}</td>
+          <td><strong>{{ app.num_days }}</strong></td>
+          <td><span class="status-badge status-{{ app.status }}">{{ app.get_status_display }}</span></td>
+          <td>
+            <a href="/leaves/detail/{{ app.id }}/" class="btn btn-outline-primary btn-sm btn-icon" title="View">
+              <i class="fas fa-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><i class="fas fa-inbox"></i><h5>No applications yet</h5><p>Leave requests will appear here.</p></div>
+  {% endif %}
+</div>
+
+
+{# ═══════════════════════════════════════════ MANAGER DASHBOARD ═══ #}
+{% elif user.role == 'manager' %}
+
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title"><span class="role-pill role-manager"><i class="fas fa-users-cog me-2"></i>Manager</span> &nbsp;Dashboard</h1>
+    <p class="page-subtitle">Manage your team's leave requests and track attendance.</p>
+  </div>
+  <a href="/leaves/approvals/manager/" class="btn btn-primary btn-sm">
+    <i class="fas fa-check-double me-2"></i>Review Pending
+    {% if pending_approvals %}<span class="ms-1 badge bg-white text-primary">{{ pending_approvals }}</span>{% endif %}
+  </a>
+</div>
+
+<!-- MANAGER STATS -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3 fade-in fade-in-1">
+    <div class="stat-card">
+      <div class="stat-icon indigo"><i class="fas fa-users"></i></div>
+      <div>
+        <div class="stat-value">{{ team_count|default:"0" }}</div>
+        <div class="stat-label">Team Members</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3 fade-in fade-in-2">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="fas fa-hourglass-half"></i></div>
+      <div>
+        <div class="stat-value">{{ pending_approvals|default:"0" }}</div>
+        <div class="stat-label">Pending Approvals</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3 fade-in fade-in-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+      <div>
+        <div class="stat-value">{{ approved_this_month|default:"0" }}</div>
+        <div class="stat-label">Approved This Month</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3 fade-in fade-in-4">
+    <div class="stat-card">
+      <div class="stat-icon red"><i class="fas fa-user-minus"></i></div>
+      <div>
+        <div class="stat-value">{{ team_on_leave|default:"0" }}</div>
+        <div class="stat-label">On Leave Today</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGER WORKFLOW BANNER -->
+<div class="workflow-banner fade-in fade-in-2 mb-4">
+  <div class="wf-step wf-done">
+    <div class="wf-circle"><i class="fas fa-paper-plane"></i></div>
+    <div class="wf-label">Employee Applies</div>
+  </div>
+  <div class="wf-arrow"><i class="fas fa-chevron-right"></i></div>
+  <div class="wf-step wf-active">
+    <div class="wf-circle"><i class="fas fa-user-check"></i></div>
+    <div class="wf-label">You Review</div>
+    <div class="wf-badge">Your Step</div>
+  </div>
+  <div class="wf-arrow"><i class="fas fa-chevron-right"></i></div>
+  <div class="wf-step">
+    <div class="wf-circle"><i class="fas fa-stamp"></i></div>
+    <div class="wf-label">HR Approves</div>
+  </div>
+  <div class="wf-arrow"><i class="fas fa-chevron-right"></i></div>
+  <div class="wf-step">
+    <div class="wf-circle"><i class="fas fa-file-pdf"></i></div>
+    <div class="wf-label">Letter Generated</div>
+  </div>
+</div>
+
+<!-- PENDING LEAVES -->
+<div class="table-container fade-in fade-in-3">
+  <div class="table-toolbar">
+    <div class="table-title"><i class="fas fa-inbox me-2 text-muted"></i>Team Requests Awaiting Your Review</div>
+    <a href="/leaves/approvals/manager/" class="btn btn-primary btn-sm">View All</a>
+  </div>
+  {% if pending_leaves %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Applied</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for app in pending_leaves %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="avatar">{{ app.employee.first_name|first }}{{ app.employee.last_name|first }}</div>
+              <strong>{{ app.employee.get_full_name }}</strong>
+            </div>
+          </td>
+          <td><span style="color:{{ app.leave_type.color }};font-weight:600;">{{ app.leave_type.name }}</span></td>
+          <td>{{ app.start_date|date:"d M Y" }}</td>
+          <td>{{ app.end_date|date:"d M Y" }}</td>
+          <td><strong>{{ app.num_days }}</strong></td>
+          <td style="color:var(--text-3);font-size:12px;">{{ app.applied_date|timesince }} ago</td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="/leaves/detail/{{ app.id }}/" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-eye me-1"></i>Review
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center py-4" style="color:var(--text-3);">
+          <i class="fas fa-check-circle me-2 text-success"></i>All caught up! No pending requests.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-check-double" style="color:var(--success);"></i>
+    <h5>No Pending Requests</h5>
+    <p>Your team is all clear. New requests will appear here.</p>
+  </div>
+  {% endif %}
+</div>
+
+
+{# ═══════════════════════════════════════════ EMPLOYEE DASHBOARD ═══ #}
+{% else %}
+
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title"><span class="role-pill role-employee"><i class="fas fa-user me-2"></i>Employee</span> &nbsp;Dashboard</h1>
+    <p class="page-subtitle">Hello, {{ user.get_full_name|default:user.username }}! Manage your leave from here.</p>
+  </div>
+  <a href="/leaves/apply/" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-2"></i>Apply for Leave
+  </a>
+</div>
+
+<!-- EMP STATS -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3 fade-in fade-in-1">
+    <div class="stat-card">
+      <div class="stat-icon indigo"><i class="fas fa-file-alt"></i></div>
+      <div>
+        <div class="stat-value">{{ my_applications|length|default:"0" }}</div>
+        <div class="stat-label">Total Applications</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3 fade-in fade-in-2">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="fas fa-clock"></i></div>
+      <div>
+        <div class="stat-value">{{ pending_count|default:"0" }}</div>
+        <div class="stat-label">Pending Review</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3 fade-in fade-in-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+      <div>
+        <div class="stat-value">{{ approved_count|default:"0" }}</div>
+        <div class="stat-label">Approved</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3 fade-in fade-in-4">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="fas fa-wallet"></i></div>
+      <div>
+        <div class="stat-value">{{ balances|length|default:"0" }}</div>
+        <div class="stat-label">Leave Types Available</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Leave Balances -->
+  <div class="col-lg-5 fade-in fade-in-2">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h6 class="card-title"><i class="fas fa-wallet me-2 text-muted"></i>My Leave Balances</h6>
+        <a href="/leaves/balance/" class="text-accent" style="font-size:12px;">View All →</a>
+      </div>
+      <div class="card-body">
+        {% for bal in balances %}
+        <div class="balance-card mb-3">
+          <div class="balance-header">
+            <span class="balance-label" style="color:{{ bal.leave_type.color }}">{{ bal.leave_type.name }}</span>
+            <span class="balance-days">{{ bal.remaining_days }} / {{ bal.allocated_days }} days left</span>
+          </div>
+          <div class="progress">
+            {% if bal.allocated_days > 0 %}
+              {% widthratio bal.used_days bal.allocated_days 100 as pct %}
+              <div class="progress-bar" style="width:{{ pct }}%; background:{{ bal.leave_type.color }}"></div>
+            {% endif %}
+          </div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Used: {{ bal.used_days }} days</div>
+        </div>
+        {% empty %}
+        <div class="empty-state" style="padding:24px 0;">
+          <i class="fas fa-info-circle"></i>
+          <p>No balances allocated yet. Contact HR.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Workflow Status -->
+  <div class="col-lg-7 fade-in fade-in-3">
+    <div class="card h-100">
+      <div class="card-header">
+        <h6 class="card-title"><i class="fas fa-route me-2 text-muted"></i>How Leave Approval Works</h6>
+      </div>
+      <div class="card-body">
+        <div class="workflow-steps-vertical">
+          <div class="wfv-step">
+            <div class="wfv-icon wfv-you"><i class="fas fa-paper-plane"></i></div>
+            <div class="wfv-content">
+              <div class="wfv-title">You Apply</div>
+              <div class="wfv-desc">Submit your leave request with dates and reason.</div>
+            </div>
+          </div>
+          <div class="wfv-connector"></div>
+          <div class="wfv-step">
+            <div class="wfv-icon wfv-manager"><i class="fas fa-user-check"></i></div>
+            <div class="wfv-content">
+              <div class="wfv-title">Manager Reviews</div>
+              <div class="wfv-desc">Your department manager approves or rejects.</div>
+            </div>
+          </div>
+          <div class="wfv-connector"></div>
+          <div class="wfv-step">
+            <div class="wfv-icon wfv-hr"><i class="fas fa-stamp"></i></div>
+            <div class="wfv-content">
+              <div class="wfv-title">HR Final Approval</div>
+              <div class="wfv-desc">HR officer gives final approval and updates records.</div>
+            </div>
+          </div>
+          <div class="wfv-connector"></div>
+          <div class="wfv-step">
+            <div class="wfv-icon wfv-done"><i class="fas fa-file-pdf"></i></div>
+            <div class="wfv-content">
+              <div class="wfv-title">Leave Letter Generated</div>
+              <div class="wfv-desc">Download your official PDF approval letter with QR code.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MY RECENT LEAVES -->
+<div class="table-container fade-in fade-in-4">
+  <div class="table-toolbar">
+    <div class="table-title"><i class="fas fa-history me-2 text-muted"></i>My Recent Applications</div>
+    <div class="d-flex gap-2">
+      <a href="/leaves/my-leaves/" class="btn btn-outline-secondary btn-sm">View All</a>
+      <a href="/leaves/apply/" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Apply</a>
+    </div>
+  </div>
+  {% if my_applications %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Leave #</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for app in my_applications %}
+        <tr>
+          <td class="fw-600 text-accent">{{ app.leave_number }}</td>
+          <td><span style="color:{{ app.leave_type.color }};font-weight:600;">{{ app.leave_type.name }}</span></td>
+          <td>{{ app.start_date|date:"d M Y" }}</td>
+          <td>{{ app.end_date|date:"d M Y" }}</td>
+          <td><strong>{{ app.num_days }}</strong></td>
+          <td><span class="status-badge status-{{ app.status }}">{{ app.get_status_display }}</span></td>
+          <td>
+            <a href="/leaves/detail/{{ app.id }}/" class="btn btn-outline-primary btn-sm btn-icon" title="View Details">
+              <i class="fas fa-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-file-alt"></i>
+    <h5>No Applications Yet</h5>
+    <p>You haven't applied for any leave yet.</p>
+    <a href="/leaves/apply/" class="btn btn-primary btn-sm mt-2"><i class="fas fa-plus me-2"></i>Apply Now</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if user.role == 'super_admin' or user.role == 'hr_officer' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const ctx = document.getElementById('leaveTypeChart');
+  if (!ctx) return;
+
+  const labels = [{% for s in leave_type_stats %}"{{ s.leave_type__name }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+  const data   = [{% for s in leave_type_stats %}{{ s.count }}{% if not forloop.last %},{% endif %}{% endfor %}];
+  const colors = ['#6366f1','#10b981','#f59e0b','#3b82f6','#ef4444','#8b5cf6','#14b8a6'];
+
+  if (labels.length === 0) {
+    ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-chart-bar"></i><p>No approved leave data yet.</p></div>';
+    return;
+  }
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Approved Leaves',
+        data: data,
+        backgroundColor: colors.slice(0, labels.length),
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y} approved leave(s)`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, color: '#9aa3b8', font: { size: 11 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: {
+          ticks: { color: '#9aa3b8', font: { size: 11 } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+});
+</script>
+{% endif %}
+{% endblock %}

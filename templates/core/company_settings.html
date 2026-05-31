@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% block title %}Company Settings{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title">Company Settings</h1>
+    <p class="page-subtitle">Configure your organisation's details — these appear on all generated documents</p>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<div class="row g-4">
+
+  <!-- LEFT: Main Details -->
+  <div class="col-lg-8">
+
+    <!-- Basic Info -->
+    <div class="card fade-in fade-in-1 mb-4">
+      <div class="card-header">
+        <h6 class="card-title"><i class="fas fa-building me-2 text-muted"></i>Organisation Details</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Company Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" value="{{ settings.name }}" required placeholder="e.g. Acme Corporation Ltd">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text" style="background:var(--surface-2);border-color:var(--border);"><i class="fas fa-envelope text-muted"></i></span>
+              <input type="email" name="email" class="form-control" value="{{ settings.email }}" placeholder="info@company.com">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Telephone</label>
+            <div class="input-group">
+              <span class="input-group-text" style="background:var(--surface-2);border-color:var(--border);"><i class="fas fa-phone text-muted"></i></span>
+              <input type="text" name="telephone" class="form-control" value="{{ settings.telephone }}" placeholder="+254 700 000 000">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Website</label>
+            <div class="input-group">
+              <span class="input-group-text" style="background:var(--surface-2);border-color:var(--border);"><i class="fas fa-globe text-muted"></i></span>
+              <input type="url" name="website" class="form-control" value="{{ settings.website }}" placeholder="https://www.company.com">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Postal Address</label>
+            <input type="text" name="postal_address" class="form-control" value="{{ settings.postal_address }}" placeholder="P.O. Box 1234 - 00100">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Physical Address</label>
+            <textarea name="physical_address" class="form-control" rows="3" placeholder="Street, Building, Floor, City">{{ settings.physical_address }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Preview Info -->
+    <div class="card fade-in fade-in-2" style="border-color:var(--accent);border-style:dashed;">
+      <div class="card-body" style="padding:18px 20px;">
+        <div class="d-flex gap-3 align-items-start">
+          <div class="stat-icon indigo" style="flex-shrink:0;"><i class="fas fa-file-pdf"></i></div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--text);">Document Appearance</div>
+            <div style="font-size:13px;color:var(--text-2);margin-top:4px;line-height:1.7;">
+              The company logo, name, address, telephone, email, and stamp will automatically appear on all
+              generated <strong>PDF leave approval letters</strong>. Make sure the details are accurate before saving.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Logos & Actions -->
+  <div class="col-lg-4">
+
+    <!-- Company Logo -->
+    <div class="card fade-in fade-in-1 mb-4">
+      <div class="card-header">
+        <h6 class="card-title"><i class="fas fa-image me-2 text-muted"></i>Company Logo</h6>
+      </div>
+      <div class="card-body text-center">
+        <div class="upload-preview mb-3" id="logoPreview">
+          {% if settings.logo %}
+            <img src="{{ settings.logo.url }}" alt="Logo" style="max-height:100px;max-width:180px;object-fit:contain;border-radius:8px;">
+          {% else %}
+            <div style="width:100px;height:100px;background:var(--surface-2);border:2px dashed var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+              <i class="fas fa-image" style="font-size:32px;color:var(--text-3);"></i>
+            </div>
+          {% endif %}
+        </div>
+        <label class="btn btn-outline-primary btn-sm w-100">
+          <i class="fas fa-upload me-2"></i>Upload Logo
+          <input type="file" name="logo" accept="image/*" class="d-none" onchange="previewImg(this,'logoPreview')">
+        </label>
+        <div class="form-text mt-2">PNG or JPG recommended. Will appear on letterheads.</div>
+      </div>
+    </div>
+
+    <!-- Company Stamp -->
+    <div class="card fade-in fade-in-2 mb-4">
+      <div class="card-header">
+        <h6 class="card-title"><i class="fas fa-stamp me-2 text-muted"></i>Company Stamp</h6>
+      </div>
+      <div class="card-body text-center">
+        <div class="upload-preview mb-3" id="stampPreview">
+          {% if settings.stamp %}
+            <img src="{{ settings.stamp.url }}" alt="Stamp" style="max-height:100px;max-width:180px;object-fit:contain;border-radius:8px;">
+          {% else %}
+            <div style="width:100px;height:100px;background:var(--surface-2);border:2px dashed var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+              <i class="fas fa-stamp" style="font-size:32px;color:var(--text-3);"></i>
+            </div>
+          {% endif %}
+        </div>
+        <label class="btn btn-outline-primary btn-sm w-100">
+          <i class="fas fa-upload me-2"></i>Upload Stamp
+          <input type="file" name="stamp" accept="image/*" class="d-none" onchange="previewImg(this,'stampPreview')">
+        </label>
+        <div class="form-text mt-2">PNG with transparent background preferred.</div>
+      </div>
+    </div>
+
+    <!-- Save -->
+    <div class="card fade-in fade-in-3">
+      <div class="card-body">
+        <button type="submit" class="btn btn-primary w-100 mb-2">
+          <i class="fas fa-save me-2"></i>Save Settings
+        </button>
+        <a href="/dashboard/" class="btn btn-outline-secondary w-100">Cancel</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewImg(input, previewId) {
+  const preview = document.getElementById(previewId);
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.innerHTML = `<img src="${e.target.result}" style="max-height:100px;max-width:180px;object-fit:contain;border-radius:8px;">`;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

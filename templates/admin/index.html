@@ -1,0 +1,78 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+  {% if app_list %}
+
+  <!-- Welcome banner -->
+  <div style="
+    background: linear-gradient(135deg, #0f172a, #1e40af);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(30,64,175,0.25);
+  ">
+    <div>
+      <h2 style="color:white;margin:0;font-size:22px;font-weight:800;letter-spacing:-0.5px;">
+        LeaveFlow Administration
+      </h2>
+      <p style="color:rgba(255,255,255,0.55);margin:4px 0 0;font-size:13px;">
+        Manage users, employees, leave data, and system settings
+      </p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="/" style="background:rgba(255,255,255,0.1);color:#93c5fd;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.15);">
+        &#8592; Back to App
+      </a>
+      <a href="/dashboard/" style="background:#2563eb;color:white;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">
+        Dashboard &#8594;
+      </a>
+    </div>
+  </div>
+
+  {% for app in app_list %}
+  <div class="app-{{ app.app_label }} module" style="margin-bottom:20px;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+    <table style="width:100%;border-collapse:collapse;">
+      <caption style="text-align:left;">
+        <a href="{{ app.app_url }}" class="section" title="{% blocktrans with name=app.name %}Models in the {{ name }} application{% endblocktrans %}">
+          {{ app.name }}
+        </a>
+      </caption>
+      {% for model in app.models %}
+      <tr style="background:white;border-bottom:1px solid #f1f5f9;">
+        <th scope="row" style="padding:12px 20px;width:40%;font-size:13.5px;font-weight:600;color:#1e293b;">
+          {% if model.admin_url %}
+          <a href="{{ model.admin_url }}" style="color:#1e293b;text-decoration:none;">{{ model.name }}</a>
+          {% else %}
+          {{ model.name }}
+          {% endif %}
+        </th>
+        <td style="padding:12px 20px;">
+          {% if model.add_url %}
+          <a href="{{ model.add_url }}" style="color:#2563eb;font-size:12px;font-weight:600;text-decoration:none;background:#eff6ff;padding:4px 12px;border-radius:6px;margin-right:8px;">
+            + Add
+          </a>
+          {% endif %}
+          {% if model.admin_url %}
+          <a href="{{ model.admin_url }}" style="color:#475569;font-size:12px;font-weight:500;text-decoration:none;">
+            View / Change &#8250;
+          </a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endfor %}
+
+  {% else %}
+  <p>{% trans "You don't have permission to view or edit anything." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

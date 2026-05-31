@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Apply for Leave{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div>
+        <h1 class="page-title">Apply for Leave</h1>
+        <p class="page-subtitle">Submit a new leave request for approval</p>
+    </div>
+    <a href="/leaves/my-leaves/" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to My Leaves
+    </a>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-lg-8">
+<div class="card fade-in fade-in-1">
+    <div class="card-header">
+        <h6 class="card-title"><i class="fas fa-calendar-plus me-2 text-muted"></i>Leave Application Form</h6>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label class="form-label">Leave Type <span class="text-danger">*</span></label>
+                <select name="leave_type" class="form-select" required id="leaveTypeSelect">
+                    <option value="">-- Select Leave Type --</option>
+                    {% for lt in leave_types %}
+                    <option value="{{ lt.id }}" data-max="{{ lt.max_days }}" data-paid="{{ lt.is_paid }}" data-doc="{{ lt.requires_document }}">
+                        {{ lt.name }} ({{ lt.max_days }} days max)
+                    </option>
+                    {% endfor %}
+                </select>
+                <div id="leaveTypeInfo" class="mt-2" style="display:none;">
+                    <small class="text-muted" id="leaveTypeDetails"></small>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Start Date <span class="text-danger">*</span></label>
+                    <input type="date" name="start_date" id="id_start_date" class="form-control" required min="{{ today }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">End Date <span class="text-danger">*</span></label>
+                    <input type="date" name="end_date" id="id_end_date" class="form-control" required min="{{ today }}">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex align-items-center gap-2 p-3 rounded-3" style="background:var(--accent-light);border:1px dashed var(--accent);">
+                    <i class="fas fa-calculator" style="color:var(--accent);"></i>
+                    <span style="color:var(--accent);font-weight:600;font-size:13px;">
+                        Duration: <span id="numDays">Select dates to calculate</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Reason for Leave <span class="text-danger">*</span></label>
+                <textarea name="reason" class="form-control" rows="4" required
+                    placeholder="Please provide a clear reason for your leave request..."></textarea>
+            </div>
+
+            <div class="mb-4" id="documentSection">
+                <label class="form-label">Supporting Document</label>
+                <input type="file" name="supporting_document" class="form-control"
+                    accept=".pdf,.docx,.jpg,.jpeg,.png">
+                <div class="form-text">Accepted: PDF, DOCX, JPG, PNG. Max 5MB.</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="d-flex gap-2 justify-content-end">
+                <a href="/leaves/my-leaves/" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane me-2"></i>Submit Application
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('leaveTypeSelect').addEventListener('change', function() {
+    const opt = this.options[this.selectedIndex];
+    const info = document.getElementById('leaveTypeInfo');
+    const details = document.getElementById('leaveTypeDetails');
+    const docSection = document.getElementById('documentSection');
+
+    if (this.value) {
+        const paid = opt.getAttribute('data-paid') === 'True' ? '✅ Paid Leave' : '⚠️ Unpaid Leave';
+        const doc = opt.getAttribute('data-doc') === 'True' ? ' | 📎 Document Required' : '';
+        details.textContent = `Max ${opt.getAttribute('data-max')} days | ${paid}${doc}`;
+        info.style.display = 'block';
+        if (opt.getAttribute('data-doc') === 'True') {
+            docSection.querySelector('input').setAttribute('required', 'required');
+            docSection.querySelector('label').innerHTML = 'Supporting Document <span class="text-danger">*</span>';
+        } else {
+            docSection.querySelector('input').removeAttribute('required');
+            docSection.querySelector('label').innerHTML = 'Supporting Document';
+        }
+    } else {
+        info.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

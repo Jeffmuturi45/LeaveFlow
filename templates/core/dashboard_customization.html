@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Customization{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-header">
+        <div>
+            <h1>Dashboard Customization</h1>
+            <p class="text-muted">Manage which widgets appear on your admin dashboard</p>
+        </div>
+        <a href="/dashboard/" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Widget Configuration -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title">Available Widgets</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="customizationForm">
+                        {% csrf_token %}
+                        <div class="widget-list">
+                            {% for widget in available_widgets %}
+                            <div class="widget-item">
+                                <div class="widget-checkbox">
+                                    <input
+                                        type="checkbox"
+                                        name="enabled_widgets"
+                                        value="{{ widget.widget_id }}"
+                                        id="widget_{{ widget.widget_id }}"
+                                        {% if widget.widget_id in selected_widgets %}checked{% endif %}
+                                        class="form-check-input"
+                                    >
+                                    <label for="widget_{{ widget.widget_id }}" class="widget-toggle"></label>
+                                </div>
+                                <div class="widget-info">
+                                    <div class="widget-icon">
+                                        <i class="{{ widget.icon }}"></i>
+                                    </div>
+                                    <div class="widget-details">
+                                        <h6 class="widget-title">{{ widget.title }}</h6>
+                                        <p class="widget-desc">{{ widget.description }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No widgets available for your role</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-actions mt-4 pt-4 border-top">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Configuration
+                            </button>
+                            <button type="reset" class="btn btn-outline-secondary">
+                                <i class="fas fa-redo"></i> Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 80px;">
+                <div class="card-header">
+                    <h6 class="card-title">Preview</h6>
+                </div>
+                <div class="card-body">
+                    <div class="preview-info">
+                        <div class="preview-item">
+                            <span class="preview-label">Enabled Widgets</span>
+                            <span class="preview-value" id="enabledCount">
+                                {{ selected_widgets|length }}
+                            </span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Role</span>
+                            <span class="preview-value">{{ customization.get_role_display }}</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Last Updated</span>
+                            <span class="preview-value">
+                                {% if customization.updated_at %}
+                                    {{ customization.updated_at|date:"M d, Y H:i" }}
+                                {% else %}
+                                    Never
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="preview-widgets mt-4">
+                        <h6 class="mb-3">Enabled Widgets List:</h6>
+                        <div id="widgetsList" class="widgets-preview">
+                            {% for widget in available_widgets %}
+                            <div class="widget-preview {% if widget.widget_id not in selected_widgets %}d-none{% endif %}"
+                                 data-widget-id="{{ widget.widget_id }}">
+                                <i class="{{ widget.icon }}"></i>
+                                <span>{{ widget.title }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div id="noWidgetsMsg" class="text-muted small mt-2 {% if selected_widgets %}d-none{% endif %}">
+                            No widgets selected
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.widget-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.widget-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    transition: all 0.2s ease;
+}
+
+.widget-item:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.widget-item input[type="checkbox"]:checked ~ label {
+    background: #6366f1;
+    border-color: #4f46e5;
+}
+
+.widget-checkbox {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.widget-checkbox input[type="checkbox"] {
+    display: none;
+}
+
+.widget-toggle {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.widget-checkbox input[type="checkbox"]:checked ~ .widget-toggle::after {
+    content: '✓';
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.widget-info {
+    flex: 1;
+    display: flex;
+    gap: 1rem;
+}
+
+.widget-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.widget-details {
+    flex: 1;
+}
+
+.widget-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #1f2937;
+}
+
+.widget-desc {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.preview-info {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 1rem 0;
+}
+
+.preview-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.preview-item:last-child {
+    border-bottom: none;
+}
+
+.preview-label {
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.preview-value {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.widgets-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.widget-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #eff6ff;
+    border-left: 3px solid #3b82f6;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #1e40af;
+}
+
+.widget-preview i {
+    font-size: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .widget-item {
+        flex-direction: column;
+    }
+
+    .card.sticky-top {
+        position: static !important;
+        margin-top: 1rem;
+    }
+}
+
+.d-none {
+    display: none !important;
+}
+</style>
+
+<script>
+document.getElementById('customizationForm').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('input[name="enabled_widgets"]:checked');
+    document.getElementById('enabledCount').textContent = checkboxes.length;
+
+    // Update preview widgets visibility
+    document.querySelectorAll('.widget-preview').forEach(el => {
+        el.classList.add('d-none');
+    });
+
+    checkboxes.forEach(cb => {
+        const preview = document.querySelector(`.widget-preview[data-widget-id="${cb.value}"]`);
+        if (preview) {
+            preview.classList.remove('d-none');
+        }
+    });
+
+    // Show/hide "no widgets" message
+    const noWidgetsMsg = document.getElementById('noWidgetsMsg');
+    if (checkboxes.length === 0) {
+        noWidgetsMsg.classList.remove('d-none');
+    } else {
+        noWidgetsMsg.classList.add('d-none');
+    }
+});
+</script>
+{% endblock %}

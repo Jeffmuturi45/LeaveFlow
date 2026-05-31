@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Audit Log{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title">Audit Log</h1>
+    <p class="page-subtitle">Complete record of all system actions and user activity</p>
+  </div>
+  <div class="d-flex gap-2">
+    <span class="badge" style="background:var(--danger-light);color:var(--danger);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;">
+      <i class="fas fa-shield-alt me-2"></i>Super Admin Only
+    </span>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3 fade-in fade-in-1">
+    <div class="stat-card">
+      <div class="stat-icon indigo"><i class="fas fa-list-alt"></i></div>
+      <div>
+        <div class="stat-value">{{ logs|length }}</div>
+        <div class="stat-label">Total Records</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3 fade-in fade-in-2">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fas fa-users"></i></div>
+      <div>
+        <div class="stat-value">{{ logs|length }}</div>
+        <div class="stat-label">Showing Latest</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card fade-in fade-in-1 mb-4">
+  <div class="card-body" style="padding:16px 20px;">
+    <form method="get" class="d-flex gap-2 flex-wrap align-items-end">
+      <div>
+        <label class="form-label mb-1" style="font-size:12px;">Search Action</label>
+        <input type="text" name="q" value="{{ request.GET.q }}" class="form-control form-control-sm" placeholder="Search actions..." style="width:220px;">
+      </div>
+      <div>
+        <label class="form-label mb-1" style="font-size:12px;">User</label>
+        <input type="text" name="user" value="{{ request.GET.user }}" class="form-control form-control-sm" placeholder="Username..." style="width:160px;">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search me-1"></i>Filter</button>
+      <a href="/core/audit-log/" class="btn btn-outline-secondary btn-sm">Clear</a>
+    </form>
+  </div>
+</div>
+
+<!-- Audit Table -->
+<div class="table-container fade-in fade-in-2">
+  <div class="table-toolbar">
+    <div class="table-title"><i class="fas fa-history me-2 text-muted"></i>Activity Log <span style="font-size:12px;color:var(--text-3);font-weight:400;">(showing latest 200)</span></div>
+  </div>
+  {% if logs %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>User</th>
+          <th>Action</th>
+          <th>Model</th>
+          <th>IP Address</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td style="white-space:nowrap;font-size:12px;color:var(--text-3);">
+            <i class="fas fa-clock me-1"></i>{{ log.timestamp|date:"d M Y, H:i:s" }}
+          </td>
+          <td>
+            {% if log.user %}
+            <div class="d-flex align-items-center gap-2">
+              <div class="avatar" style="width:28px;height:28px;font-size:11px;border-radius:7px;">
+                {{ log.user.first_name|first|upper }}{{ log.user.last_name|first|upper }}
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:600;">{{ log.user.get_full_name|default:log.user.username }}</div>
+                <div style="font-size:11px;color:var(--text-3);">
+                  <span class="badge-role badge-{{ log.user.role }}" style="font-size:10px;padding:1px 7px;">{{ log.user.get_role_display }}</span>
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <span class="text-muted">System</span>
+            {% endif %}
+          </td>
+          <td style="font-size:13px;max-width:340px;">
+            <span style="color:var(--text);">{{ log.action }}</span>
+          </td>
+          <td>
+            {% if log.model_name %}
+            <span style="background:var(--surface-2);border:1px solid var(--border);padding:2px 9px;border-radius:6px;font-size:11px;font-weight:600;color:var(--text-2);">
+              {{ log.model_name }}
+            </span>
+            {% else %}—{% endif %}
+          </td>
+          <td style="font-size:12px;color:var(--text-3);">
+            {% if log.ip_address %}
+            <i class="fas fa-network-wired me-1"></i>{{ log.ip_address }}
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-shield-alt"></i>
+    <h5>No Audit Records</h5>
+    <p>System activity will be logged here as users interact with the application.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

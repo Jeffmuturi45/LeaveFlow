@@ -1,0 +1,230 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | LeaveFlow Admin{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}">
+    <span style="display:inline-flex;align-items:center;gap:10px;">
+      <span style="
+        width:34px;height:34px;
+        background:linear-gradient(135deg,#1e40af,#3b82f6);
+        border-radius:10px;
+        display:inline-flex;align-items:center;justify-content:center;
+        font-size:16px;color:white;
+      ">&#128197;</span>
+      <span style="font-weight:800;letter-spacing:-0.3px;">LeaveFlow</span>
+      <span style="font-size:11px;font-weight:500;opacity:0.6;background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:4px;">ADMIN</span>
+    </span>
+  </a>
+</h1>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  /* ── TOP BAR ── */
+  #header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1e40af 100%) !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    position: relative;
+  }
+  #header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #10b981, #f59e0b, #3b82f6);
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+  }
+  @keyframes shimmer { 0%{background-position:0 0} 100%{background-position:200% 0} }
+
+  #header a:link, #header a:visited, #header a:hover { color: #e0f2fe; }
+
+  #branding h1, #branding h1 a:link, #branding h1 a:visited {
+    color: #ffffff !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+  }
+
+  /* ── USER TOOLS ── */
+  #user-tools { color: rgba(255,255,255,0.7); }
+  #user-tools a { color: #93c5fd !important; }
+  #user-tools a:hover { color: #ffffff !important; }
+
+  /* ── SIDEBAR NAV ── */
+  #nav-sidebar { background: #0f172a; border-right: 1px solid #1e293b; }
+  #nav-sidebar .current-app .section:link,
+  #nav-sidebar .current-app .section:visited {
+    color: #93c5fd;
+  }
+
+  /* ── CONTENT AREA ── */
+  #content { background: #f8fafc; }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; }
+
+  /* ── BREADCRUMBS ── */
+  div.breadcrumbs {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+  div.breadcrumbs a { color: #2563eb; }
+
+  /* ── MODULE HEADERS ── */
+  .module h2, .module caption, .inline-group h2 {
+    background: linear-gradient(135deg, #1e40af, #2563eb);
+    color: white !important;
+    border-radius: 8px 8px 0 0;
+    padding: 10px 16px !important;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* ── BUTTONS ── */
+  .default, input[type=submit].default, .submit-row input.default, .button.default {
+    background: linear-gradient(135deg, #1e40af, #2563eb) !important;
+    border-color: #1e40af !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 9px 20px !important;
+    font-size: 13px !important;
+    box-shadow: 0 2px 6px rgba(30,64,175,0.3) !important;
+    transition: transform 0.15s, box-shadow 0.15s !important;
+  }
+  .default:hover, input[type=submit].default:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(30,64,175,0.4) !important;
+  }
+
+  /* regular buttons */
+  input[type=submit], input[type=button], .button {
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    padding: 8px 16px !important;
+    font-weight: 500 !important;
+  }
+
+  /* ── CHANGE-LIST ── */
+  #changelist { background: #ffffff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+  #changelist table thead th {
+    background: #f1f5f9 !important;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  #changelist table tbody tr:hover { background: #f8fafc; }
+
+  /* ── FORM INPUTS ── */
+  input[type=text], input[type=email], input[type=password],
+  input[type=number], input[type=url], select, textarea {
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important;
+    outline: none !important;
+  }
+
+  /* ── MESSAGES / ALERTS ── */
+  .messagelist li {
+    border-radius: 8px !important;
+    margin-bottom: 8px !important;
+    padding: 12px 16px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+  }
+  .messagelist li.success {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+    border-left: 4px solid #10b981 !important;
+  }
+  .messagelist li.error {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border-left: 4px solid #ef4444 !important;
+  }
+  .messagelist li.warning {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    border-left: 4px solid #f59e0b !important;
+  }
+
+  /* ── INDEX APP LIST ── */
+  #content-main .app-accounts .section:link { color: #8b5cf6 !important; }
+  #content-main .app-employees .section:link { color: #10b981 !important; }
+  #content-main .app-leaves .section:link { color: #3b82f6 !important; }
+  #content-main .app-core .section:link { color: #f59e0b !important; }
+
+  /* ── FILTERS ── */
+  #changelist-filter { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; }
+  #changelist-filter h2 {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+    font-size: 12px !important;
+    letter-spacing: 0.5px !important;
+    border-radius: 8px 8px 0 0;
+  }
+  #changelist-filter li a:hover { color: #2563eb; }
+  #changelist-filter li.selected a { color: #2563eb; font-weight: 700; }
+
+  /* ── INLINE TABLES ── */
+  .inline-related h3 {
+    background: #f1f5f9 !important;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #475569;
+  }
+
+  /* ── PAGINATION ── */
+  .paginator a {
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #2563eb !important;
+    font-size: 13px !important;
+    transition: all 0.15s !important;
+  }
+  .paginator a:hover { background: #2563eb !important; color: white !important; }
+  .paginator .this-page { color: white !important; background: #2563eb !important; border-radius: 6px; padding: 4px 10px; }
+
+  /* ── OBJECT TOOLS ── */
+  .object-tools a {
+    background: linear-gradient(135deg, #1e40af, #2563eb) !important;
+    border-radius: 8px !important;
+    padding: 7px 14px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(30,64,175,0.2) !important;
+  }
+  .object-tools a:hover { opacity: 0.9 !important; }
+
+  /* ── DELETE BUTTON ── */
+  .deletelink, a.deletelink {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 767px) {
+    #header { padding: 0 16px; }
+    #content { padding: 16px; }
+  }
+</style>
+{% endblock %}

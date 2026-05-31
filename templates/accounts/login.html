@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Sign In | LeaveFlow</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1e40af;
+      --primary-dark: #1e3a8a;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59,130,246,0.25);
+      --success: #10b981;
+      --text: #0f172a;
+      --text-2: #475569;
+      --text-3: #94a3b8;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --bg: #f8fafc;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      overflow-x: hidden;
+    }
+
+    /* ─── LAYOUT ─── */
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ─── LEFT PANEL ─── */
+    .login-left {
+      flex: 1;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 48px;
+      overflow: hidden;
+    }
+
+    .login-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(59,130,246,0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(16,185,129,0.2) 0%, transparent 40%),
+        radial-gradient(circle at 60% 30%, rgba(139,92,246,0.15) 0%, transparent 30%);
+    }
+
+    /* animated dots grid */
+    .dots-grid {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px);
+      background-size: 32px 32px;
+      animation: gridDrift 20s linear infinite;
+    }
+    @keyframes gridDrift {
+      0% { background-position: 0 0; }
+      100% { background-position: 32px 32px; }
+    }
+
+    .left-content {
+      position: relative;
+      z-index: 1;
+      max-width: 440px;
+      width: 100%;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 48px;
+    }
+
+    .brand-icon {
+      width: 52px; height: 52px;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: #93c5fd;
+    }
+
+    .brand-text-group { line-height: 1; }
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      color: white;
+      letter-spacing: -0.3px;
+      display: block;
+    }
+    .brand-tagline { font-size: 12px; color: rgba(255,255,255,0.45); display: block; margin-top: 2px; }
+
+    .hero-heading {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(30px, 3.5vw, 44px);
+      color: #ffffff;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+    }
+    .hero-heading .accent-word { color: #93c5fd; }
+
+    .hero-desc {
+      color: rgba(255,255,255,0.55);
+      font-size: 15px;
+      line-height: 1.75;
+      margin-bottom: 40px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .feature-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      transition: background 0.2s;
+    }
+    .feature-chip:hover { background: rgba(255,255,255,0.12); }
+    .feature-chip .chip-icon {
+      width: 28px; height: 28px;
+      background: rgba(59,130,246,0.3);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: #93c5fd;
+      flex-shrink: 0;
+    }
+
+    /* ─── RIGHT PANEL ─── */
+    .login-right {
+      width: 460px;
+      flex-shrink: 0;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 56px 48px;
+      box-shadow: -20px 0 60px rgba(0,0,0,0.08);
+      position: relative;
+      z-index: 10;
+    }
+
+    .form-header { margin-bottom: 36px; }
+
+    .form-eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .form-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    .form-subtitle { color: var(--text-3); font-size: 14px; }
+
+    .field-group { margin-bottom: 20px; }
+
+    .field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 8px;
+    }
+
+    .field-wrap { position: relative; }
+
+    .field-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .field-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+      background: white;
+    }
+
+    .field-input::placeholder { color: var(--text-3); }
+
+    .btn-eye {
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--text-3); cursor: pointer;
+      font-size: 14px; padding: 4px;
+    }
+    .btn-eye:hover { color: var(--text-2); }
+
+    .btn-signin {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.2px;
+      position: relative;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .btn-signin::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-signin:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(30,64,175,0.35);
+    }
+    .btn-signin:hover::after { opacity: 1; }
+    .btn-signin:active { transform: translateY(0); }
+
+    .error-alert {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-footer {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-badges {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .footer-badge i { color: var(--success); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .login-left { display: none; }
+      .login-right {
+        width: 100%;
+        padding: 48px 32px;
+        box-shadow: none;
+        min-height: 100vh;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .login-right { padding: 40px 24px; }
+      .form-title { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+
+  <!-- LEFT VISUAL PANEL -->
+  <div class="login-left">
+    <div class="dots-grid"></div>
+    <div class="left-content">
+      <div class="brand-mark">
+        <div class="brand-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="brand-text-group">
+          <span class="brand-name">LeaveFlow</span>
+          <span class="brand-tagline">Enterprise HR Management</span>
+        </div>
+      </div>
+
+      <h1 class="hero-heading">
+        Smarter Leave<br>
+        <span class="accent-word">Management</span><br>
+        for Modern Teams
+      </h1>
+
+      <p class="hero-desc">
+        End-to-end leave automation with multi-tier approvals,
+        real-time analytics, and automated PDF documentation.
+      </p>
+
+      <div class="features-grid">
+        <div class="feature-chip">
+          <div class="chip-icon"><i class="fas fa-route"></i></div>
+          Multi-tier Approvals
+        </div>
+        <div class="feature-chip">
+          <div class="chip-icon"><i class="fas fa-file-pdf"></i></div>
+          PDF Leave Letters
+        </div>
+        <div class="feature-chip">
+          <div class="chip-icon"><i class="fas fa-qrcode"></i></div>
+          QR Verification
+        </div>
+        <div class="feature-chip">
+          <div class="chip-icon"><i class="fas fa-chart-line"></i></div>
+          HR Analytics
+        </div>
+        <div class="feature-chip">
+          <div class="chip-icon"><i class="fas fa-bell"></i></div>
+          Live Notifications
+        </div>
+        <div class="feature-chip">
+          <div class="chip-icon"><i class="fas fa-shield-alt"></i></div>
+          Audit Trail
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="login-right">
+    <div class="form-header">
+      <div class="form-eyebrow">Secure Login</div>
+      <h2 class="form-title">Welcome Back 👋</h2>
+      <p class="form-subtitle">Sign in to your LeaveFlow account to continue</p>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+      <div class="error-alert">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ message }}
+      </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="field-group">
+        <label class="field-label" for="id_username">Username</label>
+        <div class="field-wrap">
+          <i class="fas fa-user field-icon"></i>
+          <input type="text" name="username" id="id_username"
+                 class="field-input{% if form.username.errors %} is-invalid{% endif %}"
+                 placeholder="Enter your username"
+                 value="{{ form.username.value|default:'' }}"
+                 autocomplete="username" autofocus>
+        </div>
+        {% if form.username.errors %}
+          <div style="color:#dc2626;font-size:12px;margin-top:5px;">{{ form.username.errors|join:", " }}</div>
+        {% endif %}
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="id_password">Password</label>
+        <div class="field-wrap">
+          <i class="fas fa-lock field-icon"></i>
+          <input type="password" name="password" id="id_password"
+                 class="field-input"
+                 placeholder="Enter your password"
+                 autocomplete="current-password">
+          <button type="button" class="btn-eye" onclick="togglePwd()" aria-label="Toggle password visibility">
+            <i class="fas fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-signin">
+        <i class="fas fa-arrow-right-to-bracket me-2"></i>Sign In
+      </button>
+    </form>
+
+    <div class="form-footer">
+      <div class="footer-badges">
+        <span class="footer-badge"><i class="fas fa-shield-halved"></i> CSRF Protected</span>
+        <span class="footer-badge"><i class="fas fa-lock"></i> Encrypted Sessions</span>
+        <span class="footer-badge"><i class="fas fa-user-shield"></i> Role-Based Access</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function togglePwd() {
+  const f = document.getElementById('id_password');
+  const i = document.getElementById('eyeIcon');
+  if (f.type === 'password') {
+    f.type = 'text';
+    i.className = 'fas fa-eye-slash';
+  } else {
+    f.type = 'password';
+    i.className = 'fas fa-eye';
+  }
+}
+</script>
+</body>
+</html>
